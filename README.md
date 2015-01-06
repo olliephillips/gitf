@@ -29,7 +29,7 @@ You need a Go environment and to download and install the source.
 
 ## Roadmap	
 gitf push
-	- error logging??, channels to do quicker??, single file upload??
+	- error logging??, channels to do quicker??, single file upload??, single file??, compile and upload the binary??
 	
 gitf pull
 	- all of it
