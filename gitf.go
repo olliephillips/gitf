@@ -4,37 +4,37 @@ package main
 
 import (
 	"bytes"
-	"log"
-	"os"
 	"flag"
 	"fmt"
+	"github.com/BurntSushi/toml"
+	"github.com/jlaffaye/ftp"
+	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 	"time"
-	"strings"
-	"io/ioutil"
-	"path/filepath"
-	"github.com/jlaffaye/ftp"	
-	"github.com/BurntSushi/toml"
 )
 
 var configFile = "gitf.toml"
 var logFile = "gitf.log"
-var writeConf = gitfConfig {
-	FTP: Config {},
+var writeConf = gitfConfig{
+	FTP: Config{},
 }
 
 type gitfConfig struct {
-    FTP Config
+	FTP Config
 }
 
 type Config struct {
-	Server string `toml:"server"`
-	Port int `toml:"port"`
-	User string `toml:"user"`
-	Pwd string `toml:"pwd"`
-	RemoteDir string `toml:"remote_dir"`
-	MaxConnections int `toml:"max_connections"`
-}	
+	Server         string `toml:"server"`
+	Port           int    `toml:"port"`
+	User           string `toml:"user"`
+	Pwd            string `toml:"pwd"`
+	RemoteDir      string `toml:"remote_dir"`
+	MaxConnections int    `toml:"max_connections"`
+}
 
 // Writes the TOML config file, using flags if passed, or defaults
 func writeConfig(wg *sync.WaitGroup) {
@@ -46,33 +46,33 @@ func writeConfig(wg *sync.WaitGroup) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		
+
 		var firstBuffer bytes.Buffer
-		e:= toml.NewEncoder(&firstBuffer)
+		e := toml.NewEncoder(&firstBuffer)
 		err = e.Encode(writeConf)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		f.WriteString(firstBuffer.String())	
+		f.WriteString(firstBuffer.String())
 		return
 	}
 }
 
 // Reads the TOML config file, or displays error message if not exist
-func readConfig()(gitfConfig) {
+func readConfig() gitfConfig {
 	var config gitfConfig
 
 	_, err := os.Stat(configFile)
 	if err != nil {
 		log.Fatal(configFile, " could not be found, please use gitf init")
 	}
-	
+
 	_, err = toml.DecodeFile(configFile, &config)
 	if err != nil {
 		log.Fatal(err)
-	}	
-	return config	
+	}
+	return config
 }
 
 // Creates the log file if it does not exist
@@ -86,9 +86,10 @@ func createLog(wg *sync.WaitGroup) {
 			log.Fatal(err)
 		}
 	}
-	return	
+	return
 }
 
+// Adds a log entry to gitf.log
 func addLog(msg string, status string) {
 	_, err := os.Stat(logFile)
 	if err == nil {
@@ -102,8 +103,9 @@ func addLog(msg string, status string) {
 		f.WriteString(log)
 	}
 	return
-}	
+}
 
+// Adds gitf.toml and gitf.log to .gitignore, creates if not exist
 func addGitignore(wg *sync.WaitGroup) {
 	defer wg.Done()
 	ignoreFile := ".gitignore"
@@ -128,27 +130,24 @@ func addGitignore(wg *sync.WaitGroup) {
 		f.WriteString("#Ignore gitf files\n")
 		f.WriteString("gitf.toml\n")
 		f.WriteString("gitf.log\n")
-	}	
-	return	
-}	
+	}
+	return
+}
 
+// Creates gitf.toml and gitf.log
 func initCommand() {
-	/*
-	gitf init [opts -v versioncontrol for gitf files -a activemode ]
-	*/
-	
 	// Parse flags
 	initFlag := flag.NewFlagSet("", flag.ExitOnError)
 	ServerArg := initFlag.String("s", "localhost", "IP address or name of FTP server")
-	PortArg:= initFlag.Int("P", 21, "Port to connect to FTP server on")
-	UserArg:= initFlag.String("u", "Username", "Username for login")
-	PwdArg:= initFlag.String("p", "Password", "Password for login")
+	PortArg := initFlag.Int("P", 21, "Port to connect to FTP server on")
+	UserArg := initFlag.String("u", "Username", "Username for login")
+	PwdArg := initFlag.String("p", "Password", "Password for login")
 	RemoteDirArg := initFlag.String("d", "/", "Remote directory to upload files to")
 	MaxConnectionsArg := initFlag.Int("c", 3, "Maximum concurrent connections to be opened")
 	VersionControlArg := initFlag.String("v", "false", "Should gitf.toml and gitf.log file be commited to Git")
-	
+
 	initFlag.Parse(os.Args[2:])
-	
+
 	// Pass to configuration structs
 	writeConf.FTP.Server = *ServerArg
 	writeConf.FTP.Port = *PortArg
@@ -156,30 +155,29 @@ func initCommand() {
 	writeConf.FTP.Pwd = *PwdArg
 	writeConf.FTP.RemoteDir = *RemoteDirArg
 	writeConf.FTP.MaxConnections = *MaxConnectionsArg
-	versionControl := *VersionControlArg		
-	
+	versionControl := *VersionControlArg
+
 	// Test for all files
 	_, err1 := os.Stat(configFile)
-	_, err2 := os.Stat(logFile)	
-	
+	_, err2 := os.Stat(logFile)
+
 	if err1 != nil && err2 != nil {
-		
 		var wg sync.WaitGroup
 		if versionControl == "false" {
 			wg.Add(3)
 			go addGitignore(&wg)
 		} else {
 			wg.Add(2)
-		}	
+		}
 
 		go writeConfig(&wg)
 		go createLog(&wg)
 
 		wg.Wait()
-		
+
 		// Test for all files
 		_, err3 := os.Stat(configFile)
-		_, err4 := os.Stat(logFile)	
+		_, err4 := os.Stat(logFile)
 
 		if versionControl == "false" {
 			_, err5 := os.Stat(".gitignore")
@@ -199,28 +197,29 @@ func initCommand() {
 		// Already initialised, print message
 		fmt.Println("!gitf already initialised for this repository/directory")
 		addLog("Init", "FAIL - already initialised")
-	}	
-}	
+	}
+}
 
+// Push files to FTP server using details gitf.toml
 func pushCommand() {
 	var ignoreItems = []string{configFile, logFile, ".gitignore", ".git", ".DS_Store"}
 
 	// Scan directory and get list for files and subdirecoties
 	curDir, _ := os.Getwd()
 	fileArray := []string{}
-	dirArray := []string{}	
-	
+	dirArray := []string{}
+
 	err := filepath.Walk(curDir, func(path string, f os.FileInfo, _ error) error {
-		if (path != curDir) {
+		if path != curDir {
 			trimPath := strings.Replace(path, curDir, "", 1)
 			trimPath = strings.Replace(trimPath, "/", "", 1)
 			walkIgnore := false
-			for _ , ignore := range ignoreItems {
+			for _, ignore := range ignoreItems {
 				if ignore == f.Name() {
 					walkIgnore = true
-				}	
+				}
 			}
-			
+
 			if walkIgnore == false {
 				if f.IsDir() {
 					// Directory
@@ -229,26 +228,16 @@ func pushCommand() {
 					// File
 					fileArray = append(fileArray, trimPath)
 				}
-				
-				/*	
-				if strings.Index(trimPath, ".") != -1 {
-					// File
-					fileArray = append(fileArray, trimPath)
-				} else {
-					// Directory
-					dirArray = append(dirArray, trimPath)
-				}
-				*/
-			}		
+			}
 		}
 		return nil
-	})	
-	
-	if err != nil {
-		
-	}	
+	})
 
-	// FTP testing 
+	if err != nil {
+
+	}
+
+	// FTP testing
 	// Connect
 	config := readConfig()
 	server := fmt.Sprintf("%s:%d", config.FTP.Server, config.FTP.Port)
@@ -256,7 +245,7 @@ func pushCommand() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	// Login
 	err = ftp.Login(config.FTP.User, config.FTP.Pwd)
 	if err != nil {
@@ -272,10 +261,10 @@ func pushCommand() {
 			err = ftp.MakeDir(fullPath)
 			if err != nil {
 				log.Fatal(err)
-			}	
-		}	
+			}
+		}
 	}
-	
+
 	// Upload the files - Channels
 	for _, file := range fileArray {
 		f, err := os.Open(file)
@@ -289,49 +278,53 @@ func pushCommand() {
 			log.Fatal(err)
 		} else {
 			fmt.Println("Push (OK) : " + fullPath)
-		}		
-	}	
+		}
+	}
 
 	ftp.Logout()
 	ftp.Quit()
-	
-	addLog("Push", "OK")	
+
+	addLog("Push", "OK")
 }
 
+// Pulls files from FTP server using details in gitf.toml
 func pullCommand() {
-	//var config = ReadConfig()
+	// Not implemented yet
 	addLog("Pull", "OK")
 }
 
-func statusCommand() {	
+// Prints last operation and status from gitf.log
+func statusCommand() {
 	logs, err := ioutil.ReadFile(logFile)
 	if err != nil {
-	    log.Fatal(logFile, " could not be found, please use gitf init")
+		log.Fatal(logFile, " could not be found, please use gitf init")
 	}
 	logLines := strings.Split(string(logs), "\n")
 	logLineCount := len(logLines)
 	fmt.Println("# gitf status")
-	fmt.Println(logLines[logLineCount - 2])
+	fmt.Println(logLines[logLineCount-2])
 }
 
+// Prints all operations and status from gitf.log
 func logCommand() {
 	// Read log file in display to std.out
 	logs, err := ioutil.ReadFile(logFile)
 	if err != nil {
-	    log.Fatal(logFile, " could not be found, please use gitf init")
+		log.Fatal(logFile, " could not be found, please use gitf init")
 	}
 	logLines := strings.Split(string(logs), "\n")
 	logLineCount := len(logLines)
 	fmt.Println("# gitf log")
 	for key, value := range logLines {
 		// Don't want the blank line
-		if key !=  logLineCount - 1 { 
-	    	fmt.Println(value)
+		if key != logLineCount-1 {
+			fmt.Println(value)
 		}
 	}
-}	
+}
 
-func help(){
+// Offers some help on usage
+func help() {
 	// Some help on the gitf commands and arguments
 	fmt.Println("#gitf help: commands and arguments (optional)")
 	fmt.Println(" init: initialises respository/directory, creates gitf.toml and gitf.log. Adds to .gitignore")
@@ -342,27 +335,28 @@ func help(){
 	fmt.Println(" log: reports all gitf operations from gitf.log")
 	fmt.Println(" help: displays this help information")
 }
-					
+
+// Program entry point
 func main() {
 	if len(os.Args) > 1 {
-		command := os.Args[1];
+		command := os.Args[1]
 		switch command {
-			case "init":
-				initCommand()
-			case "push":
-				pushCommand()
-			case "pull":
-				pullCommand()
-			case "status":
-				statusCommand()
-			case "log":
-				logCommand()
-			case "help":
-				help()		
-			default:
-				help()
+		case "init":
+			initCommand()
+		case "push":
+			pushCommand()
+		case "pull":
+			pullCommand()
+		case "status":
+			statusCommand()
+		case "log":
+			logCommand()
+		case "help":
+			help()
+		default:
+			help()
 		}
 	} else {
 		help()
-	}		
-}	
+	}
+}
