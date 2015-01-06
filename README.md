@@ -10,17 +10,13 @@ You need a Go environment and to download and install the source.
 ## Documentation
 **init**: initialises respository/directory, creates gitf.toml and gitf.log. Adds to .gitignore
 
--s server -u username -p password -P port
+-s server -u username -p password -P port -d remote directory -v true submit gitf.toml and log files to version control
 
 
 **push**: sends files in local directory to FTP server configured in gitf.toml
 
--s server -u username -p password -P port
-
 
 **pull** (not implemented) : retrieves files to local directory from FTP server configured in gitf.toml
-
--s server -u username -p password -P port
 
 
 **status**: reports last gitf operation from gitf.log
