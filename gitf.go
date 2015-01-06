@@ -1,9 +1,6 @@
-package main
+// A 'Git-like' interface for (also) pushing your Git repository (or any vanilla folder) via FTP
 
-/*
-push - error logging, channels to do quicker, single file upload
-pull
-*/
+package main
 
 import (
 	"bytes"
@@ -31,12 +28,12 @@ type gitfConfig struct {
 }
 
 type Config struct {
-    Server string `toml:"server"`
-    Port int `toml:"port"`
+	Server string `toml:"server"`
+	Port int `toml:"port"`
 	User string `toml:"user"`
 	Pwd string `toml:"pwd"`
 	RemoteDir string `toml:"remote_dir"`
-    MaxConnections int `toml:"max_connections"`
+	MaxConnections int `toml:"max_connections"`
 }	
 
 // Writes the TOML config file, using flags if passed, or defaults
