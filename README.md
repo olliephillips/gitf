@@ -8,26 +8,26 @@ You need a Go environment and to download and install the source.
  - go install github.com/olliephillips/gitf
 
 ## Documentation
-**init**: initialises respository/directory, creates gitf.toml and gitf.log. Adds to .gitignore
+**gitf init**: initialises respository/directory, creates gitf.toml and gitf.log. Adds to .gitignore
 
 Optional flags allow parameters to be written directly to gitf.toml. Without these, defaults will be configured which can be amended by editing the file in a text editor.
 
 -s server -u username -p password -P port -d remote directory -v true submit gitf.toml and log files to version control
 
 
-**push**: sends files in local directory to FTP server configured in gitf.toml
+**gitf push**: sends files in local directory to FTP server configured in gitf.toml
 
 
-**pull** (not implemented) : retrieves files to local directory from FTP server configured in gitf.toml
+**gitf pull** (not implemented) : retrieves files to local directory from FTP server configured in gitf.toml
 
 
-**status**: reports last gitf operation from gitf.log
+**gitf status**: reports last gitf operation from gitf.log
 
 
-**log**: reports all gitf operations from gitf.log
+**gitf log**: reports all gitf operations from gitf.log
 
 
-**help**: lists available commands
+**gitf help**: lists available commands
 
 ## Roadmap	
 gitf push
