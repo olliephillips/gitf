@@ -10,6 +10,8 @@ You need a Go environment and to download and install the source.
 ## Documentation
 **init**: initialises respository/directory, creates gitf.toml and gitf.log. Adds to .gitignore
 
+Optional flags allow parameters to be written directly to gitf.toml. Without these, defaults will be configured which can be amended by editing the file in a text editor.
+
 -s server -u username -p password -P port -d remote directory -v true submit gitf.toml and log files to version control
 
 
