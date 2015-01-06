@@ -335,13 +335,12 @@ func help(){
 	// Some help on the gitf commands and arguments
 	fmt.Println("#gitf help: commands and arguments (optional)")
 	fmt.Println(" init: initialises respository/directory, creates gitf.toml and gitf.log. Adds to .gitignore")
-	fmt.Println("  -s server -u username -p password -P port")
+	fmt.Println("  -s server -u username -p password -P port -d remote directory")
 	fmt.Println(" push: sends files in local directory to FTP server configured in gitf.toml")
-	fmt.Println("  -s server -u username -p password -P port")
-	fmt.Println(" pull: retrieves files to local directory from FTP server configuted in gitf.toml")
-	fmt.Println("  -s server -u username -p password -P port")
+	fmt.Println(" pull (not implemented): retrieves files to local directory from FTP server configuted in gitf.toml")
 	fmt.Println(" status: reports last gitf operation from gitf.log")
 	fmt.Println(" log: reports all gitf operations from gitf.log")
+	fmt.Println(" help: displays this help information")
 }
 					
 func main() {
